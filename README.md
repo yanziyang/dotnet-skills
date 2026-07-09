@@ -7,6 +7,7 @@ Agent skills for .NET projects (ASP.NET Core on .NET 8–10). Designed to be con
 | Skill | Description |
 |-------|-------------|
 | [api-design](skills/api-design/SKILL.md) | REST API design patterns for ASP.NET Core: resource naming, status codes, `TypedResults`, RFC 9457 ProblemDetails error responses, validation, pagination, filtering, versioning (`Asp.Versioning`), and rate limiting. |
+| [code-review](skills/code-review/SKILL.md) | Review C#/.NET code changes for correctness, async/threading, EF Core, security, resource-lifetime, and API-contract defects — verified against an evidence gate and presented as a visual HTML report with severity badges, before/after code, and a mechanical verdict. |
 | [improve-codebase-architecture](skills/improve-codebase-architecture/SKILL.md) | Scan a .NET solution for architectural deepening opportunities — pass-through layers, one-implementation interfaces, generic repositories over EF Core, MediatR ceremony, anemic entities — and present them as a visual HTML report with before/after diagrams. |
 
 ## Structure

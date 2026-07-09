@@ -253,3 +253,151 @@ I ran the complete pipeline against the ShopLite sample: all 8 diagram types ren
 I also fixed a housekeeping issue from the previous commit: __pycache__/*.pyc files had slipped in, so I added a .gitignore and staged their removal from tracking.
 
 Want me to commit and push this to main like last time?
+
+-----------------------------------------------------------
+Presentation-slides agent skills
+-----------------------------------------------------------
+
+Prompt:
+
+Create Presentation-slides agent skills for .NET projects (.NET 10 etc.). 
+
+Requirements for the agent skills:
+- Run through the whole code repository to have a full understanding of the solution.
+- Generate professional-looking Presentation slides as PowerPoint (.pptx) that targeting new team members, management, customers.
+- Include professional-looking diagrams / images for better illustration
+- Export diagrams in drawio or other suitable format to enable further editing by user. Save the diagrams in 'diagrams' sub-folder.
+- If there is mermaid diagram used, convert it to image, and export both mermaid diagram and images in 'diagrams' sub-folder.
+
+The agent skills will be used by middle-tier LLM model such as Sonnet 5.6, GLM-5.2, Deekseek V4 Pro etc.
+
+Fable 5 Response:
+
+I'll create this skill for the repo. Let me start by loading the skill-creator skill and looking at the existing skill conventions in this repository.
+
+Ran skill
+/anthropic-skills:skill-creator
+I'll first examine the existing skills in this repo to match their structure and conventions.
+
+Found files, ran 7 commands, read 5 files, created a file
+Now the deck spec reference that documents the deck.json format:
+
+Created
+pptx-spec.md
+
+Now the deck outline reference (storyline + audience tailoring):
+
+Created
+deck-outline.md
+
+Now the diagram recipes, adapted for 16:9 slides (fewer nodes, landscape orientation):
+
+Created 5 files, edited a file, read a file, ran a command
+Now the test deck.json covering all 11 slide types:
+
+Created a file, ran 6 commands, read a file
+The diagram renders professionally with the standard palette. Let me check the repo README to see if new skills get listed there:
+
+Read a file, edited a file
+Everything is built and verified. The final structure:
+
+Showed final skill file tree and sizes
+Done. The new presentation-slides skill is created at skills/presentation-slides/ and tested end-to-end — a 13-slide sample deck built cleanly on the first run, with valid geometry, speaker notes, footers, and correctly fitted diagram images.
+
+What was built
+The skill follows the same conventions as your architecture-design-document skill (read-only repo scan → Mermaid diagrams → draw.io exports → deliverable), with one key design decision for the middle-tier-model audience: the executing model never writes python-pptx code. It writes a content-only deck.json, and a bundled deterministic builder owns all layout, fonts, and colors — so Sonnet/GLM/DeepSeek-class models can't produce ugly or broken decks by fumbling coordinates.
+
+SKILL.md — 8-step workflow: check prerequisites → pin down audience (new team members / management / customers, defaulting to team members) → scan the repo (csproj/packages, DI, HTTP surface, DbContext, integrations, quality signals, deployment evidence) → author + render diagrams → export draw.io copies → write deck.json → build the .pptx → deliver.
+scripts/build_pptx.py — new deterministic builder: 16:9, Segoe UI, navy/blue palette matching the diagrams; 11 slide types (title, section, bullets, two_column, cards, stats, image, image_bullets, table, timeline, closing); real hanging-indent bullets, **bold** support, auto font shrinking, aspect-preserving image fitting, speaker notes, slide numbers. It validates everything and reports all problems in one run (verified: typo'd slide type, missing image, and ragged table row each produced a clear one-line error and exit 1).
+scripts/render_diagrams.py and make_drawio.py — reused from the architecture skill. Mermaid .mmd sources and rendered .pngs both land in diagrams/, plus editable .drawio copies of the two structural diagrams — exactly per your requirements.
+References — deck-outline.md (17-slide storyline with per-audience adjustments, e.g. management gets risks + roadmap and no data model; customers get benefits and no internal structure), pptx-spec.md (full deck.json schema with examples for every slide type), diagram-recipes.md (slide-tuned: ≤10 nodes, landscape-first), and drawio-spec.md.
+I also added the skill to the README.md table.
+
+Verification
+Tested on this machine (Python 3.14 via py, python-pptx 1.0.2, local mmdc): rendered a context + sequence diagram, generated the .drawio export, and built a full deck exercising all 11 slide types. A programmatic audit confirmed no out-of-bounds shapes and correct image centering. If you want to eyeball it before committing, the sample is at C:\Users\admin\AppData\Local\Temp\claude\C--MyProjects-dotnet-skills\c7e41311-6d32-478b-806c-b077c2b5561f\scratchpad\test-deck\ShopLite-Overview.pptx.
+
+Two follow-ups I can do on request: run a subagent eval of the skill against a real sample .NET solution (the full skill-creator eval loop), and/or commit the new skill following your existing commit-message style.
+
+-----------------------------------------------------------
+diagnosing-bugs agent skills
+-----------------------------------------------------------
+
+Create diagnosing-bugs agent skills for .NET projects (.NET 10 etc).
+
+reference:
+https://github.com/mattpocock/skills/blob/main/skills/engineering/diagnosing-bugs/SKILL.md
+
+The agent skills will be used by middle-tier LLM model such as Sonnet 5.6, GLM-5.2, Deekseek V4 Pro etc. 
+
+Fable 5 Response:
+
+I'll load the skill-creator skill first, then study the reference and your repo conventions.
+
+Found files, ran 2 commands, browsed the web, read 3 files, created 4 files, used 2 tools
+All four files are written. Now updating the README's skills table and doing a final consistency check:
+
+Edited a file, ran a command
+The diagnosing-bugs skill is complete at skills/diagnosing-bugs/, following the repo's conventions (origin/targets metadata, pushy trigger description, progressive disclosure), with the README table updated. Everything is in the working tree, uncommitted.
+
+What was built
+
+SKILL.md (129 lines) — the six-phase workflow from the mattpocock reference, restructured for mid-tier models: every phase has an explicit completion gate (a phase-map table up front), Phase 1 routing is a stop-at-first-match table from "where the bug lives" to a numbered loop recipe, and the core discipline is stated as checkable rules — no theory before a red command exists, one variable per probe, evidence over plausibility, watched red→green before claiming fixed, and a fixed final report template (Bug / Root cause / Fix / Regression test / Prevention) that hands off to your existing improve-codebase-architecture skill when the prevention answer implicates architecture.
+
+Three references, loaded on demand:
+
+feedback-loops.md — eight loop recipes with complete runnable code, all .NET-native: xUnit repro with --filter, WebApplicationFactory with the SQLite service-swap and the public partial class Program gotcha, HTTP script loops (PowerShell and bash), throwaway console harness kept outside the solution, git bisect run with the copy-the-repro-in script (including exit-125 skip for unbuildable commits), flaky-bug amplification (run-100× counters, thread-pool starvation, race-window widening), a determinism-pinning table (FakeTimeProvider, seeded Random, culture, ports, xunit parallelism, a complete HttpMessageHandler stub), and a scripted human-in-the-loop last resort.
+instrumentation.md — the tagged [DEBUG-<4hex>] discipline (cleanup becomes one grep), framework logging via env vars so nothing gets committed, EF Core LogTo with a "what the SQL output means" decoder, first-chance exception hooks for swallowed errors, hang diagnosis with dotnet-stack/dotnet-dump including how to read the starvation and deadlock signatures, the measure-first perf workflow (baseline harness → bisect by time or pipeline stage → verify numerically), and gcdump-diff memory-leak hunting.
+common-causes.md — the main .NET-specific addition beyond the reference: ~30 root causes organized by symptom fingerprint (hangs, flaky, works-locally-fails-in-CI, wrong/stale data, exceptions decoded, slow), each with a grep pattern and a ready-made falsifiable prediction, so a mid-tier model gets its Phase 3 hypotheses from a catalog instead of free associating. The "exceptions decoded" section maps exact .NET exception messages (A second operation was started on this context, TaskCanceledException-is-really-a-timeout, etc.) straight to their causes.
+Key adaptation for the mid-tier audience: the reference skill puts "debugger/REPL inspection" at the top of the instrumentation ladder — agents run headless, so the ladder here is re-run-the-loop-with-varied-input → tagged logs → dotnet-* CLI diagnostics, all scriptable. Judgment calls are replaced with tables and checklists throughout, and the "stop and ask the user" fallback lists the exact artifacts to request (stack trace, HAR-style request, dotnet-dump collect, config + environment name).
+
+Two optional follow-ups on request: run the skill-creator eval loop (subagents debugging a deliberately-buggy sample solution with/without the skill, plus the review viewer), and/or commit — the tree also still has your earlier Prompt.md edit pending.
+
+-----------------------------------------------------------
+data-dictionary-document agent skills
+-----------------------------------------------------------
+
+Prompt:
+
+Create data-dictionary-document agent skills. 
+
+Requirements for the agent skills:
+- Run through the whole code repository, documentation to have a full understanding of the solution.
+- Create data dictionary document as word document (docx file) based Data Definition Language (DDL) provided.
+- Include Entity Relationship Diagram (ERD). If there are two many tables, break down Entity Relationship Diagram (ERD) by modules.
+- Export diagrams in drawio or other suitable format to enable further editing by user. Save the diagrams in 'diagrams' sub-folder.
+- If there is mermaid diagram used, convert it to image, and export both mermaid diagram and images in 'diagrams' sub-folder.
+
+The agent skills will be used by middle-tier LLM model such as Sonnet 5.6, GLM-5.2, Deekseek V4 Pro etc.
+
+Fable 5 Response:
+
+Another skill in the same family — I'll follow the established conventions. Per the repo pattern, I need to check the existing build_docx.py (whether it handles the table-heavy markdown a data dictionary needs) before deciding what to reuse.
+
+Read a file, ran 2 commands, used a tool
+Now the new ERD draw.io generator:
+
+Created a file, edited a file
+Now the references. First, the ERD recipes with the module-splitting rules:
+
+Created 2 files
+Now the document template — the heart of the data dictionary:
+
+Created
+document-template.md
+
+Now the SKILL.md:
+
+Created 5 files, ran a command
+All three stages passed on the first run. Now verifying the outputs — the ERD render, the draw.io XML structure, and the docx contents:
+
+Read a file, ran 2 commands, edited a file
+Done. The new data-dictionary-document skill is at skills/data-dictionary-document/, tested end-to-end — ERD rendering, draw.io export, and docx build all passed on the first run, and I verified the outputs programmatically and visually.
+
+What was built
+SKILL.md — 8-step workflow: locate the DDL (user-provided file first; else .sql in the repo; else generate via dotnet ef migrations script or reconstruct from the EF ModelSnapshot.cs with the source clearly labelled — and stop to ask if none exist, since a dictionary invented from entity classes would misstate types and constraints) → parse tables/columns/keys/indexes → mine the repo for meaning (XML docs, HasComment, enums behind columns, HasData seeds, usage) → author + render ERDs → export draw.io twins → write the markdown → build the docx → deliver. Core rule: the DDL is the truth — code only adds meaning, and code-vs-schema drift is reported as a finding.
+scripts/make_drawio_erd.py — the new piece: generates native draw.io entity table shapes (swimlane + stacked column rows, bold PK/FK rows) with real crow's-foot line ends mapped from cardinalities like 1:N, 1:0..1, N:M, laid out in a grid. Fully editable in app.diagrams.net — verified the XML structure (5 entities, 15 rows, 4 edges with correct ERone/ERmany/ERzeroToOne arrows in the test).
+scripts/build_docx.py and render_diagrams.py — reused from the architecture skill (docx defaults retitled). Mermaid .mmd + rendered .png both land in diagrams/, per your requirements.
+References — erd-recipes.md with the module-split rules you asked for: ≤ 12 tables → one full ERD; more → module ERDs of 5–12 entities chosen by schema > FK clusters > DbContext/namespace > name prefixes, plus a 00-erd-overview module map and name-only stub entities for cross-module FKs. document-template.md gives the exact skeleton (sources, notation legend, per-module chapters with per-table Columns / Keys & Constraints / Indexes tables, flat FK reference, seed data, glossary) with a † marker distinguishing inferred descriptions from evidenced ones. drawio-erd-spec.md documents the JSON spec.
+As with the previous skill, everything a middle-tier model executes is deterministic scripting — it writes only Mermaid text, JSON specs, and constrained markdown; the bundled scripts own all rendering and fail loudly with fixable, per-item error messages.
+
+README.md now lists the skill. The test artifacts (sample ERD PNG, .drawio, and Data-Dictionary.docx) are in ...\scratchpad\test-dd\ if you want to open them before committing — and I can commit both new skills in your existing style whenever you say the word.

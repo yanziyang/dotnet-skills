@@ -1,2 +1,24 @@
 # dotnet-skills
-Agent skills for .NET
+
+Agent skills for .NET projects (ASP.NET Core on .NET 8–10). Designed to be consumed by coding agents — instructions are prescriptive and code samples are complete, so they work well with mid-tier models.
+
+## Skills
+
+| Skill | Description |
+|-------|-------------|
+| [api-design](skills/api-design/SKILL.md) | REST API design patterns for ASP.NET Core: resource naming, status codes, `TypedResults`, RFC 9457 ProblemDetails error responses, validation, pagination, filtering, versioning (`Asp.Versioning`), and rate limiting. |
+| [improve-codebase-architecture](skills/improve-codebase-architecture/SKILL.md) | Scan a .NET solution for architectural deepening opportunities — pass-through layers, one-implementation interfaces, generic repositories over EF Core, MediatR ceremony, anemic entities — and present them as a visual HTML report with before/after diagrams. |
+
+## Structure
+
+Each skill follows the [Agent Skills](https://code.claude.com/docs/en/skills) layout:
+
+```
+skills/<skill-name>/
+├── SKILL.md          # frontmatter (name, description) + core guidance
+└── references/       # deeper topic files, loaded on demand
+```
+
+## Usage
+
+Copy a skill folder into your project's `.claude/skills/` directory (or your agent platform's skills location). The agent loads `SKILL.md` when the task matches the skill's description and pulls in reference files as needed.

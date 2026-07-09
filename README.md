@@ -28,4 +28,34 @@ skills/<skill-name>/
 
 ## Usage
 
+### Install from this repository
+
+**Option 1: Using `npx skills` (recommended)**
+
+Install skills directly from the GitHub repository into your project:
+
+```bash
+npx skills install https://github.com/yanziyang/dotnet-skills
+```
+
+This downloads all skills and installs them into `.claude/skills/`. You can also install individual skills:
+
+```bash
+npx skills install https://github.com/yanziyang/dotnet-skills --skill diagnosing-bugs
+npx skills install https://github.com/yanziyang/dotnet-skills --skill code-review
+```
+
+**Option 2: Manual installation**
+
+Clone the repo and copy individual skill folders:
+
+```bash
+git clone https://github.com/yanziyang/dotnet-skills.git
+cp -r dotnet-skills/skills/<skill-name> <your-project>/.claude/skills/
+```
+
+### How skills work
+
 Copy a skill folder into your project's `.claude/skills/` directory (or your agent platform's skills location). The agent loads `SKILL.md` when the task matches the skill's description and pulls in reference files as needed.
+
+Each skill is self-contained — all files in the skill folder (references, scripts) are included, so no additional dependencies or setup are required.
